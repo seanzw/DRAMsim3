@@ -33,7 +33,9 @@ enum class RefreshPolicy {
 
 class Config {
    public:
-    Config(std::string config_file, std::string out_dir);
+    Config(std::string config_file, std::string out_dir,
+           unsigned int _interleave_bits_low,
+           unsigned int _interleave_bits_high);
     Address AddressMapping(uint64_t hex_addr) const;
     // DRAM physical structure
     DRAMProtocol protocol;
@@ -197,6 +199,17 @@ class Config {
 #endif  // THERMAL
     void InitTimingParams();
     void SetAddressMapping();
+
+   public:
+    /**
+     * These bits of [high, low] of the physical address is masked out
+     * in dramsim3::Config::AddressMapping(), as they are already used
+     * by top level Ruby to select the channel (mem ctrl.).
+     */
+    unsigned int interleave_bits_low = 0;
+    unsigned int interleave_bits_high = 0;
+    uint64_t MaskOutInterleaveBits(uint64_t hex_addr) const;
+
 };
 
 }  // namespace dramsim3

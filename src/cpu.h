@@ -15,7 +15,8 @@ class CPU {
         : memory_system_(
               config_file, output_dir,
               std::bind(&CPU::ReadCallBack, this, std::placeholders::_1),
-              std::bind(&CPU::WriteCallBack, this, std::placeholders::_1)),
+              std::bind(&CPU::WriteCallBack, this, std::placeholders::_1),
+              0, 0 /* interleave_bits (0 to disable) */),
           clk_(0) {}
     virtual void ClockTick() = 0;
     void ReadCallBack(uint64_t addr) { return; }

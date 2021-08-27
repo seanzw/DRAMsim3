@@ -15,7 +15,10 @@ class MemorySystem {
    public:
     MemorySystem(const std::string &config_file, const std::string &output_dir,
                  std::function<void(uint64_t)> read_callback,
-                 std::function<void(uint64_t)> write_callback);
+                 std::function<void(uint64_t)> write_callback,
+                 unsigned int interleave_bits_low,
+                 unsigned int interleave_bits_high
+                 );
     ~MemorySystem();
     void ClockTick();
     void RegisterCallbacks(std::function<void(uint64_t)> read_callback,
@@ -37,10 +40,6 @@ class MemorySystem {
     Config *config_;
     BaseDRAMSystem *dram_system_;
 };
-
-MemorySystem* GetMemorySystem(const std::string &config_file, const std::string &output_dir,
-                 std::function<void(uint64_t)> read_callback,
-                 std::function<void(uint64_t)> write_callback);
 
 }  // namespace dramsim3
 

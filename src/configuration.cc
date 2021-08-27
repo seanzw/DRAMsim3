@@ -8,8 +8,12 @@
 
 namespace dramsim3 {
 
-Config::Config(std::string config_file, std::string out_dir)
-    : output_dir(out_dir), reader_(new INIReader(config_file)) {
+Config::Config(std::string config_file, std::string out_dir,
+        unsigned int _interleave_bits_low,
+        unsigned int _interleave_bits_high
+    ) : output_dir(out_dir), reader_(new INIReader(config_file)),
+        interleave_bits_low(_interleave_bits_low),
+        interleave_bits_high(_interleave_bits_high) {
     if (reader_->ParseError() < 0) {
         std::cerr << "Can't load config file - " << config_file << std::endl;
         AbruptExit(__FILE__, __LINE__);
@@ -31,6 +35,7 @@ Config::Config(std::string config_file, std::string out_dir)
 }
 
 Address Config::AddressMapping(uint64_t hex_addr) const {
+    hex_addr = this->MaskOutInterleaveBits(hex_addr);
     hex_addr >>= shift_bits;
     int channel = (hex_addr >> ch_pos) & ch_mask;
     int rank = (hex_addr >> ra_pos) & ra_mask;
@@ -39,6 +44,19 @@ Address Config::AddressMapping(uint64_t hex_addr) const {
     int ro = (hex_addr >> ro_pos) & ro_mask;
     int co = (hex_addr >> co_pos) & co_mask;
     return Address(channel, rank, bg, ba, ro, co);
+}
+
+uint64_t Config::MaskOutInterleaveBits(uint64_t hex_addr) const {
+    /**
+     * Zhengrong: Mask out these bits when computing the address mapping.
+     * These bits are already used in Ruby to select the channel.
+     */
+	if (interleave_bits_high > interleave_bits_low && interleave_bits_low > 0) {
+        uint64_t low = hex_addr & ((1 << interleave_bits_low) - 1);
+        uint64_t high = (hex_addr >> (interleave_bits_high + 1)) << interleave_bits_low;
+        hex_addr = high | low;
+    }
+    return hex_addr;
 }
 
 void Config::CalculateSize() {
@@ -59,6 +77,21 @@ void Config::CalculateSize() {
         ranks = channel_size / megs_per_rank;
         channel_size = ranks * megs_per_rank;
     }
+
+    std::cout << "[DRAMSim3 Config]"
+              << "\n  DeviceWidth(b) " << device_width
+              << "\n  Columns " << columns
+              << "\n  Rows " << rows
+              << "\n  BanksPerBankGroup " << banks_per_group
+              << "\n  BankGroups " << bankgroups
+              << "\n  Banks = BanksPerBankGroup x BankGroup = " << banks
+              << "\n  DevicesPerRank = BusWidth / DeviceWidth = " << devices_per_rank
+              << "\n  RowSize(B) = Cols * DeviceWidth(b) / 8 = " << page_size
+              << "\n  BankSize(MB) = RowSize(B) * Rows / 1024 / 1024 = " << megs_per_bank
+              << "\n  RankSize(MB) = BankSize(MB) * Banks * DevicesPerRank = " << megs_per_rank
+              << "\n  ChannelSize(MB) " << channel_size
+              << "\n  Ranks = ChannelSize(MB) / RankSize(MB) = " << ranks
+              << "\n";
     return;
 }
 
@@ -401,6 +434,16 @@ void Config::SetAddressMapping() {
     ba_mask = (1 << field_widths.at("ba")) - 1;
     ro_mask = (1 << field_widths.at("ro")) - 1;
     co_mask = (1 << field_widths.at("co")) - 1;
+    std::cout << "[DRAMSim3 AddrMap >> Pos & Mask]"
+              << "\n  Channel Pos " << ch_pos << " Width " << field_widths.at("ch")
+              << "\n  Rank    Pos " << ra_pos << " Width " << field_widths.at("ra")
+              << "\n  BankGrp Pos " << bg_pos << " Width " << field_widths.at("bg")
+              << "\n  Bank    Pos " << ba_pos << " Width " << field_widths.at("ba")
+              << "\n  Row     Pos " << ro_pos << " Width " << field_widths.at("ro")
+              << "\n  Column  Pos " << co_pos << " Width " << field_widths.at("co")
+              << "\n  Shift   Bit " << shift_bits
+              << "\n  Interleave  " << interleave_bits_low << " - " << interleave_bits_high
+              << "\n";
 }
 
 }  // namespace dramsim3
