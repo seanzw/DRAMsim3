@@ -149,12 +149,15 @@ void Controller::ClockTick() {
 }
 
 bool Controller::WillAcceptTransaction(uint64_t hex_addr, bool is_write) const {
-    if (is_unified_queue_) {
-        return unified_queue_.size() < unified_queue_.capacity();
-    } else if (!is_write) {
-        return read_queue_.size() < read_queue_.capacity();
+    const auto &queue = is_unified_queue_ ? unified_queue_ :
+                                (is_write ? write_buffer_ : read_queue_);
+    if (queue.size() < queue.capacity()) {
+        return true;
     } else {
-        return write_buffer_.size() < write_buffer_.capacity();
+        // if (hex_addr == 0xc06ad40) {
+        //     std::cout << hex_addr << " IsWrite " << is_write << " QueueSize " << queue.size() << '\n';
+        // }
+        return false;
     }
 }
 
