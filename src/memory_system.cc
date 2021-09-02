@@ -3,12 +3,13 @@
 namespace dramsim3 {
 MemorySystem::MemorySystem(const std::string &config_file,
                            const std::string &output_dir,
+                           const std::string &output_prefix,
                            std::function<void(uint64_t)> read_callback,
                            std::function<void(uint64_t)> write_callback,
                            unsigned int interleave_bits_low,
                            unsigned int interleave_bits_high
                            )
-    : config_(new Config(config_file, output_dir,
+    : config_(new Config(config_file, output_dir, output_prefix,
                          interleave_bits_low,
                          interleave_bits_high)) {
     // TODO: ideal memory type?

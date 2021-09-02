@@ -8,10 +8,11 @@
 
 namespace dramsim3 {
 
-Config::Config(std::string config_file, std::string out_dir,
+Config::Config(std::string config_file, std::string out_dir, std::string out_prefix,
         unsigned int _interleave_bits_low,
         unsigned int _interleave_bits_high
-    ) : output_dir(out_dir), reader_(new INIReader(config_file)),
+    ) : output_dir(out_dir), output_prefix(out_prefix),
+        reader_(new INIReader(config_file)),
         interleave_bits_low(_interleave_bits_low),
         interleave_bits_high(_interleave_bits_high) {
     if (reader_->ParseError() < 0) {
@@ -206,10 +207,15 @@ void Config::InitOtherParams() {
         output_dir = output_dir + "/";
     }
     output_prefix =
-        output_dir + reader.Get("other", "output_prefix", "dramsim3");
+        output_dir + reader.Get("other", "output_prefix", output_prefix);
     json_stats_name = output_prefix + ".json";
     json_epoch_name = output_prefix + "epoch.json";
     txt_stats_name = output_prefix + ".txt";
+
+    // Clear the file.
+    std::ofstream json_out(json_stats_name);
+    std::ofstream epoch_out(json_epoch_name);
+    std::ofstream txt_out(txt_stats_name);
     return;
 }
 

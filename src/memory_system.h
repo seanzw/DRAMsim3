@@ -13,7 +13,9 @@ namespace dramsim3 {
 // This should be the interface class that deals with CPU
 class MemorySystem {
    public:
-    MemorySystem(const std::string &config_file, const std::string &output_dir,
+    MemorySystem(const std::string &config_file,
+                 const std::string &output_dir,
+                 const std::string &output_prefix,
                  std::function<void(uint64_t)> read_callback,
                  std::function<void(uint64_t)> write_callback,
                  unsigned int interleave_bits_low,

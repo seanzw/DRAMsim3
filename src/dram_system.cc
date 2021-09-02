@@ -54,15 +54,23 @@ void BaseDRAMSystem::PrintEpochStats() {
 void BaseDRAMSystem::PrintStats() {
     // Finish epoch output, remove last comma and append ]
     std::ofstream epoch_out(config_.json_epoch_name, std::ios_base::in |
-                                                         std::ios_base::out |
-                                                         std::ios_base::ate);
+                                                     std::ios_base::out |
+                                                     std::ios_base::ate);
     epoch_out.seekp(-2, std::ios_base::cur);
     epoch_out.write("]", 1);
     epoch_out.close();
 
-    std::ofstream json_out(config_.json_stats_name, std::ofstream::out);
-    json_out << "{";
-
+    std::fstream json_out(config_.json_stats_name);
+    if (json_out.peek() == std::istream::traits_type::eof()) {
+        // Put "[{" if this is the first time.
+        json_out.clear();
+        json_out.seekp(0, std::ios_base::end);
+        json_out.write("[\n{", 3);
+    } else {
+        // Otherwise, add ",{".
+        json_out.seekp(-1, std::ios_base::end);
+        json_out.write(",\n{", 3);
+    }
     // close it now so that each channel can handle it
     json_out.close();
     for (size_t i = 0; i < ctrls_.size(); i++) {
@@ -72,8 +80,10 @@ void BaseDRAMSystem::PrintStats() {
             chan_out << "," << std::endl;
         }
     }
-    json_out.open(config_.json_stats_name, std::ofstream::app);
-    json_out << "}";
+    {
+        std::ofstream json_out(config_.json_stats_name, std::ofstream::app);
+        json_out << "}]";
+    }
 
 #ifdef THERMAL
     thermal_calc_.PrintFinalPT(clk_);

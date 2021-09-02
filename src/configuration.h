@@ -33,7 +33,9 @@ enum class RefreshPolicy {
 
 class Config {
    public:
-    Config(std::string config_file, std::string out_dir,
+    Config(std::string config_file,
+           std::string out_dir,
+           std::string out_prefix,
            unsigned int _interleave_bits_low,
            unsigned int _interleave_bits_high);
     Address AddressMapping(uint64_t hex_addr) const;

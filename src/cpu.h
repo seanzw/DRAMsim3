@@ -13,7 +13,7 @@ class CPU {
    public:
     CPU(const std::string& config_file, const std::string& output_dir)
         : memory_system_(
-              config_file, output_dir,
+              config_file, output_dir, "dramsim3",
               std::bind(&CPU::ReadCallBack, this, std::placeholders::_1),
               std::bind(&CPU::WriteCallBack, this, std::placeholders::_1),
               0, 0 /* interleave_bits (0 to disable) */),
